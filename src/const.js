@@ -5,7 +5,7 @@
 const CH = {
   ASTERISK: 0x2a, BACKSLASH: 0x5c, QUESTION: 0x3f, LEFT_CURLY: 0x7b, RIGHT_CURLY: 0x7d, LEFT_SQUARE: 0x5b,
   RIGHT_SQUARE: 0x5d, HYPHEN: 0x2d, EXCLAMATION: 0x21, COMMA: 0x2c, PERIOD: 0x2e, LEFT_PARENS: 0x28,
-  RIGHT_PARENS: 0x29, PLUS: 0x2b, AT: 0x40, CARET: 0x5e, DOLLAR: 0x24
+  RIGHT_PARENS: 0x29, PLUS: 0x2b, AT: 0x40, CARET: 0x5e, DOLLAR: 0x24, BAR: 0x7c, SLASH: 0x2f
 };
 
 const TOKEN = {
@@ -53,7 +53,7 @@ const POSIX_CLS = {
 }
 
 const TOKEN_TO_RE = {
-  [TOKEN.WILDCARD_NESTED]: nums('([^/]*[/])*[^/]*'),
+  [TOKEN.WILDCARD_NESTED]: nums('([^/]+\\/)*[^/]*'),
   [TOKEN.WILDCARD_ONE]: nums('[^/]'), [TOKEN.WILDCARD_ANY]: nums('[^/]*'),
 
   [TOKEN.CHOICE_START]: nums('('), [TOKEN.CHOICE_SEP]: nums('|'), [TOKEN.CHOICE_END]: nums(')'),
@@ -65,7 +65,7 @@ const TOKEN_TO_RE = {
   [TOKEN.GROUP_ANY_START]: nums('('), [TOKEN.GROUP_ANY_END]: nums(')*'),
   [TOKEN.GROUP_MANY_START]: nums('('), [TOKEN.GROUP_MANY_END]: nums(')+'),
   [TOKEN.GROUP_OPT_START]: nums('('), [TOKEN.GROUP_OPT_END]: nums(')?'),
-  [TOKEN.GROUP_NOT_START]: nums('(?!'), [TOKEN.GROUP_NOT_END]: nums(').*'),
+  [TOKEN.GROUP_NOT_START]: nums('(?!'), [TOKEN.GROUP_NOT_END]: nums(')+.*'),
 
   [TOKEN.POSIX_ALNUM]: nums('a-zA-Z0-9'), [TOKEN.POSIX_ALPHA]: nums('a-zA-Z'),
   [TOKEN.POSIX_ASCII]: nums('\\x00-\\x7f'), [TOKEN.POSIX_BLANK]: nums(' \\t'),
@@ -81,7 +81,8 @@ const CHAR_TO_RE = {
   [CH.LEFT_CURLY]: esc('{'), [CH.RIGHT_CURLY]: esc('}'),
   [CH.LEFT_SQUARE]: esc('['), [CH.RIGHT_SQUARE]: esc(']'),
   [CH.LEFT_PARENS]: esc('('), [CH.RIGHT_PARENS]: esc(')'),
-  [CH.PLUS]: esc('+'), [CH.ASTERISK]: esc('*')
+  [CH.PLUS]: esc('+'), [CH.ASTERISK]: esc('*'),
+  [CH.BACKSLASH]: esc('\\')
 }
 
 module.exports = {

@@ -44,7 +44,7 @@ function makeRe(input) {
       case STATE.ESCAPED: onToken(ch, 0, -STATE.ESCAPED); continue;
       case STATE.RANGE: {
         if (ch === CH.LEFT_SQUARE) { // Character class handling
-          let start = i = i + 1;
+          let start = i += 1;
           while (input.charCodeAt(i) !== CH.RIGHT_SQUARE) { i += 1; }
           const key = input.substring(start, i);
           if (!(key in POSIX_CLS)) {
@@ -73,12 +73,25 @@ function makeRe(input) {
       case CH.HYPHEN: onToken(ch, state === STATE.RANGE ? TOKEN.RANGE_SEP : 0); break;
       case CH.COMMA: onToken(ch, state === STATE.CHOICE ? TOKEN.CHOICE_SEP : 0); break;
       case CH.ASTERISK:
-        onToken(ch, nextCh === CH.ASTERISK ? TOKEN.WILDCARD_NESTED : TOKEN.WILDCARD_ANY);
-        i += (nextCh === CH.ASTERISK ? 1 : 0);
+        if (nextCh === CH.ASTERISK && (
+          input.charCodeAt(i + 2) === CH.SLASH || (i + 2 === input.length))
+        ) {
+          onToken(ch, TOKEN.WILDCARD_NESTED);
+          i += 2;
+        } else {
+          onToken(ch, TOKEN.WILDCARD_ANY);
+        }
+        break;
+      case CH.LEFT_PARENS:
+        if (state === STATE.RANGE) {
+          onToken(ch, 0);
+        } else {
+          onToken(ch, TOKEN.GROUP_ONE_START, STATE.GROUP_ONE);
+        }
         break;
       case CH.RIGHT_PARENS: {
         if (!(state in GROUP_STATE_TO_TOKEN)) {
-          onToken(ch, 0)
+          throw new Error(`Unexecpted parens: )`)
         } else {
           onToken(ch, GROUP_STATE_TO_TOKEN[state], -state);
         }
