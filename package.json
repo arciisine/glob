@@ -2,17 +2,10 @@
   "name": "glob",
   "version": "1.0.0",
   "description": "",
-  "main": "index.js",
+  "main": "src/index.js",
   "scripts": {
     "test": "echo \"Error: no test specified\" && exit 1"
   },
   "author": "",
-  "license": "ISC",
-  "dependencies": {
-    "picomatch": "^2.2.2",
-    "typescript": "^3.9.6"
-  },
-  "devDependencies": {
-    "mocha": "^8.0.1"
-  }
+  "license": "ISC"
 }
