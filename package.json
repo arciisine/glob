@@ -1,11 +1,17 @@
 {
-  "name": "glob",
+  "name": "@arcsine/glob",
   "version": "1.0.0",
-  "description": "",
-  "main": "src/index.js",
+  "description": "Lightweight Globbing Package",
+  "main": "dist/index.js",
+  "files": [
+    "dist"
+  ],
   "scripts": {
-    "test": "echo \"Error: no test specified\" && exit 1"
+    "prepublish": "node bin/compile > dist/index.js"
   },
-  "author": "",
+  "author": {
+    "name": "Timothy Soehnlin",
+    "email": "timothy.soehnlin@gmail.com"
+  },
   "license": "ISC"
 }
