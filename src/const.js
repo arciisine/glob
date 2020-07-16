@@ -1,62 +1,44 @@
 // @ts-check
 /** @param {string} x  */ const nums = (x) => x.split('').map(x => x.charCodeAt(0));
-/** @param {string} x  */ const esc = x => nums(`\\${x}`);
 
+/**
+ * @constant
+ */
 const CH = {
   ASTERISK: 0x2a, BACKSLASH: 0x5c, QUESTION: 0x3f, LEFT_CURLY: 0x7b, RIGHT_CURLY: 0x7d, LEFT_SQUARE: 0x5b,
   RIGHT_SQUARE: 0x5d, HYPHEN: 0x2d, EXCLAMATION: 0x21, COMMA: 0x2c, PERIOD: 0x2e, LEFT_PARENS: 0x28,
   RIGHT_PARENS: 0x29, PLUS: 0x2b, AT: 0x40, CARET: 0x5e, DOLLAR: 0x24, BAR: 0x7c, SLASH: 0x2f
 };
 
-let i = 1;
+/**
+ * @constant
+ */
 const TOKEN = {
-  WILDCARD_ANY: i++, WILDCARD_ONE: i++, WILDCARD_NESTED: i++,
-  CHOICE_START: i++, CHOICE_SEP: i++, CHOICE_END: i++,
-  RANGE_START: i++, RANGE_NEGATE: i++, RANGE_SEP: i++, RANGE_END: i++,
+  WILDCARD_ANY: 1, WILDCARD_ONE: 2, WILDCARD_NESTED: 3,
+  CHOICE_START: 4, CHOICE_SEP: 5, CHOICE_END: 6,
+  RANGE_START: 7, RANGE_NEGATE: 8, RANGE_SEP: 9, RANGE_END: 10,
 
-  GROUP_ONE_START: i++, GROUP_ONE_END: i++, GROUP_ANY_START: i++, GROUP_ANY_END: i++,
-  GROUP_MANY_START: i++, GROUP_MANY_END: i++, GROUP_OPT_START: i++, GROUP_OPT_END: i++,
-  GROUP_NOT_START: i++, GROUP_NOT_END: i++, GROUP_RE_START: i++, GROUP_RE_END: i++,
+  GROUP_ONE_START: 11, GROUP_ONE_END: 12, GROUP_ANY_START: 13, GROUP_ANY_END: 14,
+  GROUP_MANY_START: 15, GROUP_MANY_END: 16, GROUP_OPT_START: 17, GROUP_OPT_END: 18,
+  GROUP_NOT_START: 19, GROUP_NOT_END: 20, GROUP_RE_START: 21, GROUP_RE_END: 22,
 
-  POSIX_ALNUM: i++, POSIX_ALPHA: i++, POSIX_ASCII: i++, POSIX_BLANK: i++,
-  POSIX_CNTRL: i++, POSIX_DIGIT: i++, POSIX_GRAPH: i++, POSIX_LOWER: i++,
-  POSIX_PRINT: i++, POSIX_PUNCT: i++, POSIX_SPACE: i++, POSIX_UPPER: i++,
-  POSIX_WORD: i++, POSIX_XDIGIT: i++
+  POSIX_ALNUM: 23, POSIX_ALPHA: 24, POSIX_ASCII: 25, POSIX_BLANK: 26,
+  POSIX_CNTRL: 27, POSIX_DIGIT: 28, POSIX_GRAPH: 29, POSIX_LOWER: 30,
+  POSIX_PRINT: 31, POSIX_PUNCT: 32, POSIX_SPACE: 33, POSIX_UPPER: 34,
+  POSIX_WORD: 35, POSIX_XDIGIT: 36
 };
 
+/**
+ * @constant
+ */
 const STATE = {
   ESCAPED: 1, RANGE: 2, CHOICE: 3, GROUP_ONE: 4, GROUP_ANY: 5, GROUP_MANY: 6, GROUP_OPT: 7, GROUP_NOT: 8, GROUP_RE: 9
 };
 
-/** @type {Record<number, [number,number]>}*/
-const GROUP_CH_TO_TOKEN = {
-  [CH.PLUS]: [TOKEN.GROUP_MANY_START, STATE.GROUP_MANY],
-  [CH.EXCLAMATION]: [TOKEN.GROUP_NOT_START, STATE.GROUP_NOT],
-  [CH.QUESTION]: [TOKEN.GROUP_OPT_START, STATE.GROUP_OPT],
-  [CH.ASTERISK]: [TOKEN.GROUP_ANY_START, STATE.GROUP_ANY],
-  [CH.AT]: [TOKEN.GROUP_ONE_START, STATE.GROUP_ONE]
-};
-
-const GROUP_STATE_TO_TOKEN = {
-  [STATE.GROUP_MANY]: TOKEN.GROUP_MANY_END,
-  [STATE.GROUP_NOT]: TOKEN.GROUP_NOT_END,
-  [STATE.GROUP_OPT]: TOKEN.GROUP_OPT_END,
-  [STATE.GROUP_ANY]: TOKEN.GROUP_ANY_END,
-  [STATE.GROUP_ONE]: TOKEN.GROUP_ONE_END,
-  [STATE.GROUP_RE]: TOKEN.GROUP_RE_END,
-};
-
-const POSIX_CLS = {
-  ':alnum:': TOKEN.POSIX_ALNUM, ':alpha:': TOKEN.POSIX_ALPHA,
-  ':ascii:': TOKEN.POSIX_ASCII, ':blank:': TOKEN.POSIX_BLANK,
-  ':cntrl:': TOKEN.POSIX_CNTRL, ':digit:': TOKEN.POSIX_DIGIT,
-  ':graph:': TOKEN.POSIX_GRAPH, ':lower:': TOKEN.POSIX_LOWER,
-  ':print:': TOKEN.POSIX_PRINT, ':punct:': TOKEN.POSIX_PUNCT,
-  ':space:': TOKEN.POSIX_SPACE, ':upper:': TOKEN.POSIX_UPPER,
-  ':word:': TOKEN.POSIX_WORD, ':xdigit:': TOKEN.POSIX_XDIGIT
-}
-
-const TOKEN_TO_RE = {
+/**
+ * @constant
+ */
+const RE = {
   [TOKEN.WILDCARD_NESTED]: nums('([^/]+\\/)*[^/]*'),
   [TOKEN.WILDCARD_ONE]: nums('[^/]'), [TOKEN.WILDCARD_ANY]: nums('[^/]*'),
 
@@ -78,20 +60,18 @@ const TOKEN_TO_RE = {
   [TOKEN.POSIX_GRAPH]: nums('\\x21-\\x7e'), [TOKEN.POSIX_LOWER]: nums('a-z'),
   [TOKEN.POSIX_PRINT]: nums('\\x20-\\x7e'), [TOKEN.POSIX_PUNCT]: nums('\\-!"#$%&\'()\\*+,./:;<=>?@\\^_{|}~'),
   [TOKEN.POSIX_SPACE]: nums(' \\t\\r\\n\\v\\f'), [TOKEN.POSIX_UPPER]: nums('A-Z'),
-  [TOKEN.POSIX_WORD]: nums('A-Za-z0-9_'), [TOKEN.POSIX_XDIGIT]: nums('A-Fa-f0-9')
-};
-
-const CHAR_TO_RE = {
-  [CH.PERIOD]: esc('.'), [CH.QUESTION]: esc('?'),
-  [CH.LEFT_CURLY]: esc('{'), [CH.RIGHT_CURLY]: esc('}'),
-  [CH.LEFT_SQUARE]: esc('['), [CH.RIGHT_SQUARE]: esc(']'),
-  [CH.LEFT_PARENS]: esc('('), [CH.RIGHT_PARENS]: esc(')'),
-  [CH.PLUS]: esc('+'), [CH.ASTERISK]: esc('*'),
-  [CH.BACKSLASH]: esc('\\'), [CH.CARET]: esc('^'),
-  [CH.DOLLAR]: esc('$'),
+  [TOKEN.POSIX_WORD]: nums('A-Za-z0-9_'), [TOKEN.POSIX_XDIGIT]: nums('A-Fa-f0-9'),
 }
 
-module.exports = {
-  CH, TOKEN, STATE, GROUP_CH_TO_TOKEN, GROUP_STATE_TO_TOKEN,
-  POSIX_CLS, TOKEN_TO_RE, CHAR_TO_RE
+const CH_RE = {
+  [CH.LEFT_CURLY]: nums('\\{'), [CH.RIGHT_CURLY]: nums('\\}'),
+  [CH.LEFT_SQUARE]: nums('\\['), [CH.RIGHT_SQUARE]: nums('\\]'),
+  [CH.LEFT_PARENS]: nums('\\('), [CH.RIGHT_PARENS]: nums('\\)'),
+  [CH.BACKSLASH]: nums('\\\\'), [CH.ASTERISK]: nums('\\*'),
+
+  [CH.PERIOD]: nums('\\.'), [CH.QUESTION]: nums('\\?'),
+  [CH.CARET]: nums('\\^'), [CH.PLUS]: nums('\\+'),
+  [CH.DOLLAR]: nums('\\$'),
 };
+
+module.exports = { CH, TOKEN, STATE, CH_RE, RE };
