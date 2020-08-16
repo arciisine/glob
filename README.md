@@ -1,9 +1,12 @@
 # @arcsine/glob
 
-A light-weight globbing library that shares an API with picomatch.  
+A light-weight, simple globbing library that shares an API with picomatch.  
+
+The code, when compressed is about 1.1kb. Additionally, the source is small and is fairly straightforward to read through.
 
 Primary differences are limited support for vague regex patterns that picomatch supports, as well as limited 
-support for group negation.  
+support for group negation.  Consequently, there are also many edge cases that this library does not take into
+consideration (as of yet), and should be used for fairly standard globbing usages.
 
 Primary features:
 * `*` matches any characters except for `/`
@@ -20,13 +23,23 @@ Primary features:
 * `[!ab]` or `[^ab]` matches anything other than `a` or `b`, once
 
 In addition to simple character class, support, there is also support for POSIX character classes:
-* `[[:alnum:]]` all alpha-numeric values.
-* `[[:alpha:]]` all alpha values.
-* `[[:ascii:]]` all ascii values.
+* `[[:alnum:]]` alpha-numeric values
+* `[[:alpha:]]` alpha values
+* `[[:ascii:]]` ascii values
 * `[[:blank:]]` simple whitespace
 * `[[:cntrl:]]` control characters
 * `[[:digit:]]` numbers
 * `[[:lower:]]` lower case letters
 * `[[:print:]]` printable characters
 * `[[:punct:]]` punctuation
-* `[[:space:]]` whitespace characcters
+* `[[:space:]]` whitespace characters
+* `[[:upper:]]` upper case characters
+* `[[:word:]]` alpha-numeric as well as _
+* `[[:xdigit:]]` hexidecimal characters
+
+## Usage
+
+```javascript
+const {isMatch} = require('@arcsine/glob');
+isMatch('folder/level/two/ab', '**/+([ab])') === true
+```

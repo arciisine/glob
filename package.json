@@ -1,13 +1,16 @@
 {
   "name": "@arcsine/glob",
-  "version": "1.0.0",
+  "version": "0.1.0",
   "description": "Lightweight Globbing Package",
   "main": "dist/index.js",
+  "publishConfig": {
+    "access": "public"
+  },
   "files": [
     "dist"
   ],
   "scripts": {
-    "prepublish": "node bin/compile > dist/index.js"
+    "prepare": "node bin/compile > dist/index.js"
   },
   "author": {
     "name": "Timothy Soehnlin",

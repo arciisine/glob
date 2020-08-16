@@ -40,7 +40,7 @@ const STATE = {
  * @constant
  */
 const RE = {
-  [TOKEN.WILDCARD_NESTED]: nums('([^/]+[/])*[^/]*'),
+  [TOKEN.WILDCARD_NESTED]: nums('([^/]+[/])*'),
   [TOKEN.WILDCARD_ONE]: nums('[^/]'), [TOKEN.WILDCARD_ANY]: nums('[^/]*'),
 
   [TOKEN.CHOICE_START]: nums('('), [TOKEN.CHOICE_SEP]: nums('|'), [TOKEN.CHOICE_END]: nums(')'),
